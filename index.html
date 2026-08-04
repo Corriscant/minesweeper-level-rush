@@ -8,7 +8,7 @@
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
     <style id="minesweeper-portrait-layout">
-      html, body { width: 100%; height: 100%; overflow: hidden; }
+      html, body { width: 100%; height: 100%; overflow: hidden; background: #282828; }
       #unity-container.unity-desktop,
       #unity-container.unity-mobile {
         position: fixed;
@@ -30,14 +30,76 @@
       }
       #unity-footer { display: none; }
     </style>
+    <style id="minesweeper-loading-experience">
+      #unity-loading-bar {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: min(100vw, 56.25vh);
+        height: min(100vh, 177.77777778vw);
+        width: min(100vw, 56.25dvh);
+        height: min(100dvh, 177.77777778vw);
+        aspect-ratio: 9 / 16;
+        transform: translate(-50%, -50%);
+        overflow: hidden;
+        opacity: 1;
+        background: #802D2E url("TemplateData/SplashScreen.png") center / contain no-repeat;
+        transition: opacity 220ms ease-out;
+      }
+      #unity-loading-bar.is-complete { opacity: 0; pointer-events: none; }
+      #unity-loading-progress {
+        position: absolute;
+        left: clamp(16px, 6%, 32px);
+        right: clamp(16px, 6%, 32px);
+        bottom: clamp(18px, 3.5%, 36px);
+        padding: 10px 12px 8px;
+        border: 1px solid rgba(255, 255, 255, 0.58);
+        border-radius: 8px;
+        background: rgba(20, 20, 20, 0.78);
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
+      }
+      #unity-progress-bar-empty {
+        width: 100%;
+        height: 12px;
+        margin: 0;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: 6px;
+        background: rgba(0, 0, 0, 0.52);
+      }
+      #unity-progress-bar-full {
+        width: 0%;
+        height: 100%;
+        margin: 0;
+        border-radius: 5px;
+        background: linear-gradient(90deg, #d9d9d9, #ffffff);
+      }
+      #unity-progress-bar-empty.is-preparing #unity-progress-bar-full {
+        width: 34% !important;
+        animation: minesweeper-preparing-progress 1.15s ease-in-out infinite;
+      }
+      #unity-progress-percent {
+        margin-top: 5px;
+        color: #ffffff;
+        font: 600 14px/1.1 Arial, Helvetica, sans-serif;
+        text-align: center;
+        text-shadow: 0 1px 2px #000000;
+      }
+      @keyframes minesweeper-preparing-progress {
+        from { transform: translateX(-130%); }
+        to { transform: translateX(390%); }
+      }
+    </style>
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width=540 height=960 tabindex="-1"></canvas>
       <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
+        <div id="unity-loading-progress">
+          <div id="unity-progress-bar-empty">
+            <div id="unity-progress-bar-full"></div>
+          </div>
+          <div id="unity-progress-percent">0%</div>
         </div>
       </div>
       <div id="unity-warning"> </div>
@@ -49,6 +111,45 @@
     </div>
     <script>
       var canvas = document.querySelector("#unity-canvas");
+
+      var minesweeperLoadingBar = document.querySelector("#unity-loading-bar");
+      var minesweeperProgressTrack = document.querySelector("#unity-progress-bar-empty");
+      var minesweeperProgressBar = document.querySelector("#unity-progress-bar-full");
+      var minesweeperProgressLabel = document.querySelector("#unity-progress-percent");
+      var minesweeperUnityRuntimeReady = false;
+      var minesweeperGameContentReady = false;
+
+      function setMinesweeperLoadingProgress(progress) {
+        var normalizedProgress = Math.max(0, Math.min(1, progress));
+        var percent = Math.round(100 * normalizedProgress);
+        minesweeperProgressBar.style.width = 100 * normalizedProgress + "%";
+        minesweeperProgressLabel.textContent = percent + "%";
+      }
+
+      function tryHideMinesweeperLoadingExperience() {
+        if (!minesweeperUnityRuntimeReady || !minesweeperGameContentReady ||
+            minesweeperLoadingBar.classList.contains("is-complete")) {
+          return;
+        }
+
+        minesweeperProgressTrack.classList.remove("is-preparing");
+        minesweeperLoadingBar.classList.add("is-complete");
+        window.setTimeout(function () {
+          minesweeperLoadingBar.style.display = "none";
+        }, 220);
+      }
+
+      function markMinesweeperUnityRuntimeReady() {
+        minesweeperUnityRuntimeReady = true;
+        minesweeperProgressTrack.classList.add("is-preparing");
+        minesweeperProgressLabel.textContent = "Preparing game…";
+        tryHideMinesweeperLoadingExperience();
+      }
+
+      window.minesweeperGameReady = function () {
+        minesweeperGameContentReady = true;
+        tryHideMinesweeperLoadingExperience();
+      };
 
       // Shows a temporary message banner/ribbon for a few seconds, or
       // a permanent error message on top of the canvas if type=='error'.
@@ -139,9 +240,9 @@
       script.src = loaderUrl;
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
-          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+          setMinesweeperLoadingProgress(progress);
               }).then((unityInstance) => {
-                document.querySelector("#unity-loading-bar").style.display = "none";
+                markMinesweeperUnityRuntimeReady();
                 document.querySelector("#unity-fullscreen-button").onclick = () => {
                   unityInstance.SetFullscreen(1);
                 };
