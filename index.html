@@ -30,6 +30,8 @@
       }
       #unity-footer { display: none; }
     </style>
+    <script data-minesweeper-analytics src="analytics-config.js"></script>
+    <script data-minesweeper-analytics src="analytics.js"></script>
     <style id="minesweeper-loading-experience">
       #unity-loading-bar {
         position: absolute;
@@ -134,6 +136,13 @@
 
         minesweeperProgressTrack.classList.remove("is-preparing");
         minesweeperLoadingBar.classList.add("is-complete");
+        try {
+          if (window.minesweeperAnalytics &&
+              typeof window.minesweeperAnalytics.trackEvent === "function") {
+            window.minesweeperAnalytics.trackEvent("unity_loaded");
+          }
+        } catch (error) {
+        }
         window.setTimeout(function () {
           minesweeperLoadingBar.style.display = "none";
         }, 220);
