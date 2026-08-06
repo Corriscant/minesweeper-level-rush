@@ -3,8 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Minesweeper: Level Rush — Play in Browser</title>
-    <meta name="description" content="Play Minesweeper: Level Rush directly in your browser.">
+    <title>Unity Web Player | Minesweeper Level Rush</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
     <style id="minesweeper-portrait-layout">
@@ -30,6 +29,8 @@
       }
       #unity-footer { display: none; }
     </style>
+    <script data-minesweeper-analytics src="analytics-config.js"></script>
+    <script data-minesweeper-analytics src="analytics.js"></script>
     <style id="minesweeper-loading-experience">
       #unity-loading-bar {
         position: absolute;
@@ -134,6 +135,13 @@
 
         minesweeperProgressTrack.classList.remove("is-preparing");
         minesweeperLoadingBar.classList.add("is-complete");
+        try {
+          if (window.minesweeperAnalytics &&
+              typeof window.minesweeperAnalytics.trackEvent === "function") {
+            window.minesweeperAnalytics.trackEvent("unity_loaded");
+          }
+        } catch (error) {
+        }
         window.setTimeout(function () {
           minesweeperLoadingBar.style.display = "none";
         }, 220);
