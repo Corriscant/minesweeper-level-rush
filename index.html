@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity Web Player | Minesweeper Level Rush</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
+    <link rel="shortcut icon" href="Releases/870e2d22f6ea7011/TemplateData/favicon.ico">
+    <link rel="stylesheet" href="Releases/870e2d22f6ea7011/TemplateData/style.css">
     <style id="minesweeper-portrait-layout">
       html, body { width: 100%; height: 100%; overflow: hidden; background: #282828; }
       #unity-container.unity-desktop,
@@ -44,7 +44,7 @@
         transform: translate(-50%, -50%);
         overflow: hidden;
         opacity: 1;
-        background: #802D2E url("TemplateData/SplashScreen.png") center / contain no-repeat;
+        background: #802D2E url("Releases/870e2d22f6ea7011/TemplateData/SplashScreen.png") center / contain no-repeat;
         transition: opacity 220ms ease-out;
       }
       #unity-loading-bar.is-complete { opacity: 0; pointer-events: none; }
@@ -91,6 +91,7 @@
         to { transform: translateX(390%); }
       }
     </style>
+    <meta name="minesweeper-release-id" content="870e2d22f6ea7011">
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
@@ -159,6 +160,36 @@
         tryHideMinesweeperLoadingExperience();
       };
 
+      function handleMinesweeperRuntimeLoadFailure(reason) {
+        var reloadKey = "minesweeper-runtime-reload-" + window.location.pathname;
+        var canAutoReload = true;
+        var hasReloaded = false;
+        try {
+          hasReloaded = window.sessionStorage.getItem(reloadKey) === "1";
+          if (!hasReloaded) {
+            window.sessionStorage.setItem(reloadKey, "1");
+          }
+        } catch (error) {
+          canAutoReload = false;
+          hasReloaded = true;
+        }
+        if (canAutoReload && !hasReloaded) {
+          if (typeof unityShowBanner === "function") {
+            unityShowBanner("Refreshing the game version...", "warning");
+          }
+          window.setTimeout(function () {
+            window.location.reload();
+          }, 900);
+          return;
+        }
+        if (typeof unityShowBanner === "function") {
+          unityShowBanner("This game version could not load. Please refresh the page.", "error");
+        }
+        if (window.console && typeof window.console.error === "function") {
+          window.console.error("Minesweeper runtime load failed", reason);
+        }
+      }
+
       // Shows a temporary message banner/ribbon for a few seconds, or
       // a permanent error message on top of the canvas if type=='error'.
       // If type=='warning', a yellow highlight color is used.
@@ -184,14 +215,14 @@
         updateBannerVisibility();
       }
 
-      var buildUrl = "Build";
+      var buildUrl = "Releases/870e2d22f6ea7011/Build";
       var loaderUrl = buildUrl + "/WebGLGitHubPages.loader.js";
       var config = {
         arguments: [],
         dataUrl: buildUrl + "/WebGLGitHubPages.data.unityweb",
         frameworkUrl: buildUrl + "/WebGLGitHubPages.framework.js.unityweb",
         codeUrl: buildUrl + "/WebGLGitHubPages.wasm.unityweb",
-        streamingAssetsUrl: "StreamingAssets",
+        streamingAssetsUrl: "Releases/870e2d22f6ea7011/StreamingAssets",
         autoSyncPersistentDataPath: true,
         companyName: "Corriscant",
         productName: "Minesweeper Level Rush",
@@ -246,6 +277,9 @@
 
       var script = document.createElement("script");
       script.src = loaderUrl;
+      script.onerror = function () {
+        handleMinesweeperRuntimeLoadFailure("loader");
+      };
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
           setMinesweeperLoadingProgress(progress);
@@ -256,7 +290,7 @@
                 };
 
               }).catch((message) => {
-                alert(message);
+                handleMinesweeperRuntimeLoadFailure(message);
               });
             };
 
