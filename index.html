@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity Web Player | Minesweeper Level Rush</title>
-    <link rel="shortcut icon" href="Releases/34feb5302eb20a48/TemplateData/favicon.ico">
-    <link rel="stylesheet" href="Releases/34feb5302eb20a48/TemplateData/style.css">
+    <link rel="shortcut icon" href="Releases/317c4208dfe7832a/TemplateData/favicon.ico">
+    <link rel="stylesheet" href="Releases/317c4208dfe7832a/TemplateData/style.css">
     <style id="minesweeper-portrait-layout">
       html, body { width: 100%; height: 100%; overflow: hidden; background: #282828; }
       #unity-container.unity-desktop,
@@ -44,7 +44,7 @@
         transform: translate(-50%, -50%);
         overflow: hidden;
         opacity: 1;
-        background: #802D2E url("Releases/34feb5302eb20a48/TemplateData/SplashScreen.png") center / contain no-repeat;
+        background: #802D2E url("Releases/317c4208dfe7832a/TemplateData/SplashScreen.png") center / contain no-repeat;
         transition: opacity 220ms ease-out;
       }
       #unity-loading-bar.is-complete { opacity: 0; pointer-events: none; }
@@ -91,7 +91,7 @@
         to { transform: translateX(390%); }
       }
     </style>
-    <meta name="minesweeper-release-id" content="34feb5302eb20a48">
+    <meta name="minesweeper-release-id" content="317c4208dfe7832a">
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
@@ -215,18 +215,18 @@
         updateBannerVisibility();
       }
 
-      var buildUrl = "Releases/34feb5302eb20a48/Build";
+      var buildUrl = "Releases/317c4208dfe7832a/Build";
       var loaderUrl = buildUrl + "/WebGLGitHubPages.loader.js";
       var config = {
         arguments: [],
         dataUrl: buildUrl + "/WebGLGitHubPages.data.unityweb",
         frameworkUrl: buildUrl + "/WebGLGitHubPages.framework.js.unityweb",
         codeUrl: buildUrl + "/WebGLGitHubPages.wasm.unityweb",
-        streamingAssetsUrl: "Releases/34feb5302eb20a48/StreamingAssets",
+        streamingAssetsUrl: "Releases/317c4208dfe7832a/StreamingAssets",
         autoSyncPersistentDataPath: true,
         companyName: "Corriscant",
         productName: "Minesweeper Level Rush",
-        productVersion: "1.0.42",
+        productVersion: "1.0.46",
         showBanner: unityShowBanner,
         // errorHandler: function(err, url, line) {
         //    alert("error " + err + " occurred at line " + line);
