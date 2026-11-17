@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity Web Player | Minesweeper Level Rush</title>
-    <link rel="shortcut icon" href="Releases/a960242f7d7fc758/TemplateData/favicon.ico">
-    <link rel="stylesheet" href="Releases/a960242f7d7fc758/TemplateData/style.css">
+    <link rel="shortcut icon" href="Releases/d9764a3090d74ee6/TemplateData/favicon.ico">
+    <link rel="stylesheet" href="Releases/d9764a3090d74ee6/TemplateData/style.css">
     <style id="minesweeper-portrait-layout">
       html, body { width: 100%; height: 100%; overflow: hidden; background: #282828; }
       #unity-container.unity-desktop,
@@ -44,7 +44,7 @@
         transform: translate(-50%, -50%);
         overflow: hidden;
         opacity: 1;
-        background: #802D2E url("Releases/a960242f7d7fc758/TemplateData/SplashScreen.png") center / contain no-repeat;
+        background: #802D2E url("Releases/d9764a3090d74ee6/TemplateData/SplashScreen.png") center / contain no-repeat;
         transition: opacity 220ms ease-out;
       }
       #unity-loading-bar.is-complete { opacity: 0; pointer-events: none; }
@@ -91,7 +91,7 @@
         to { transform: translateX(390%); }
       }
     </style>
-    <meta name="minesweeper-release-id" content="a960242f7d7fc758">
+    <meta name="minesweeper-release-id" content="d9764a3090d74ee6">
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
@@ -119,6 +119,9 @@
       var minesweeperProgressBar = document.querySelector("#unity-progress-bar-full");
       var minesweeperProgressLabel = document.querySelector("#unity-progress-percent");
       var minesweeperUnityRuntimeReady = false;
+      var minesweeperInitialStorageState = null;
+      var minesweeperDeferredRuntimeFailure = null;
+      var minesweeperStorageReloadKey = "minesweeper-storage-reload-" + window.location.pathname;
       var minesweeperGameContentReady = false;
 
       function setMinesweeperLoadingProgress(progress) {
@@ -134,6 +137,12 @@
           return;
         }
 
+        if (minesweeperInitialStorageState === "ready") {
+          try {
+            window.sessionStorage.removeItem(minesweeperStorageReloadKey);
+          } catch (error) {
+          }
+        }
         minesweeperProgressTrack.classList.remove("is-preparing");
         minesweeperLoadingBar.classList.add("is-complete");
         try {
@@ -160,7 +169,62 @@
         tryHideMinesweeperLoadingExperience();
       };
 
+      window.minesweeperInitialStorageResult = function (result) {
+        if (minesweeperInitialStorageState !== null && minesweeperInitialStorageState !== "pending") {
+          return;
+        }
+        minesweeperInitialStorageState = result;
+        if (result === "pending") {
+          return;
+        }
+        var resumeRuntimeFailure = minesweeperDeferredRuntimeFailure;
+        minesweeperDeferredRuntimeFailure = null;
+        if (result === "ready") {
+          if (resumeRuntimeFailure) {
+            resumeRuntimeFailure();
+          }
+          return;
+        }
+        if (result === "error") {
+          var retryRecorded = false;
+          try {
+            var storage = window.sessionStorage;
+            if (storage.getItem(minesweeperStorageReloadKey) === null) {
+              storage.setItem(minesweeperStorageReloadKey, "1");
+              retryRecorded = storage.getItem(minesweeperStorageReloadKey) === "1";
+            }
+          } catch (error) {
+          }
+          if (retryRecorded) {
+            window.setTimeout(function () {
+              window.location.reload();
+            }, 0);
+            return;
+          }
+        }
+        unityShowBanner("Saved game data could not load. Press F5 to reload the page.", "error");
+      };
+
+      function reloadMinesweeperRuntime() {
+        if (minesweeperInitialStorageState === "pending") {
+          minesweeperDeferredRuntimeFailure = reloadMinesweeperRuntime;
+        } else if (minesweeperInitialStorageState === null || minesweeperInitialStorageState === "ready") {
+          window.location.reload();
+        }
+      }
+
       function handleMinesweeperRuntimeLoadFailure(reason) {
+        if (minesweeperInitialStorageState === "pending") {
+          if (!minesweeperDeferredRuntimeFailure) {
+            minesweeperDeferredRuntimeFailure = function () {
+              handleMinesweeperRuntimeLoadFailure(reason);
+            };
+          }
+          return;
+        }
+        if (minesweeperInitialStorageState !== null && minesweeperInitialStorageState !== "ready") {
+          return;
+        }
         var reloadKey = "minesweeper-runtime-reload-" + window.location.pathname;
         var canAutoReload = true;
         var hasReloaded = false;
@@ -177,9 +241,7 @@
           if (typeof unityShowBanner === "function") {
             unityShowBanner("Refreshing the game version...", "warning");
           }
-          window.setTimeout(function () {
-            window.location.reload();
-          }, 900);
+          window.setTimeout(reloadMinesweeperRuntime, 900);
           return;
         }
         if (typeof unityShowBanner === "function") {
@@ -215,18 +277,18 @@
         updateBannerVisibility();
       }
 
-      var buildUrl = "Releases/a960242f7d7fc758/Build";
+      var buildUrl = "Releases/d9764a3090d74ee6/Build";
       var loaderUrl = buildUrl + "/WebGLGitHubPages.loader.js";
       var config = {
         arguments: [],
         dataUrl: buildUrl + "/WebGLGitHubPages.data.unityweb",
         frameworkUrl: buildUrl + "/WebGLGitHubPages.framework.js.unityweb",
         codeUrl: buildUrl + "/WebGLGitHubPages.wasm.unityweb",
-        streamingAssetsUrl: "Releases/a960242f7d7fc758/StreamingAssets",
+        streamingAssetsUrl: "Releases/d9764a3090d74ee6/StreamingAssets",
         autoSyncPersistentDataPath: true,
         companyName: "Corriscant",
         productName: "Minesweeper Level Rush",
-        productVersion: "1.0.59",
+        productVersion: "1.0.68",
         showBanner: unityShowBanner,
         // errorHandler: function(err, url, line) {
         //    alert("error " + err + " occurred at line " + line);
